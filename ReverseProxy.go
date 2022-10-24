@@ -1,74 +1,53 @@
-package SeeProxy
+package main
 
 import (
-	"crypto/tls"
-	"io/ioutil"
+	"fmt"
 	"log"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
-	"os"
-	"strings"
 )
 
-func Handler(request http.Request) (http.Response, error) {
-
-	var url *url.URL
-	var body []byte
-	var err error
-	var outboundHeaders map[string]string
-
-	teamserver := os.Getenv("TEAMSERVER")
-	client := http.Client{}
-
-	// Set to allow invalid HTTPS certs on the back-end server
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-
-	// Build our request URL as received to pass onto CS
-	foo := "https://" + teamserver + "/" + request.RequestURI
-	url, err = url.Parse(foo)
+func NewProxy(teamServer string) (*httputil.ReverseProxy, error) {
+	url, err := url.Parse(teamServer)
 	if err != nil {
-		log.Print(err)
+		log.Fatal("Error parsing the teamserver URL")
+	}
+	proxy := httputil.NewSingleHostReverseProxy(url)
+
+	originalDirector := proxy.Director
+	proxy.Director = func(request *http.Request) {
+		originalDirector(request)
+		ModifyRequest(request)
 	}
 
-	// Extract any provided query parameters
-	if request.URL.Query() != nil {
-		q := url.Query()
-		for key, value := range request.URL.Query() {
-			q.Set(key, value[0])
-		}
-		url.RawQuery = q.Encode()
+	proxy.ErrorHandler = ErrorHandler()
+	return proxy, nil
+}
+
+func ModifyRequest(request *http.Request) {
+	request.Header.Set("X-Proxy", "Simple Proxy")
+}
+
+func ErrorHandler() func(w http.ResponseWriter, r *http.Request, e error) {
+	return func(w http.ResponseWriter, req *http.Request, err error) {
+		fmt.Printf("Got error while modifying response: %v \n", err)
+		return
 	}
+}
 
-	log.Print("url raw query: " + url.RawQuery)
+func ProxyRequestHandler(proxy *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		proxy.ServeHTTP(w, r)
+	}
+}
 
-	req, err := http.NewRequest(request.Method, url.String(), strings.NewReader(string(body)))
+func main() {
+	proxy, err := NewProxy("http://127.0.0.1:1337")
 	if err != nil {
-		log.Fatalf("Error pushing request to TeamServer: %v", err)
+		panic(err)
 	}
 
-	for key, values := range request.Header {
-		for _, value := range values {
-			req.Header.Set(key, value)
-		}
-	}
-
-	// Forward the request to our TeamServer
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatalf("Error forwarding request to TeamServer: %v", err)
-	}
-
-	// Parse the TS response headers
-	outboundHeaders = map[string]string{}
-
-	for key, value := range resp.Header {
-		outboundHeaders[key] = value[0]
-	}
-
-	// Store the TS response body
-	body, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalf("Error receiving request from TeamServer")
-	}
-	return http.Response{StatusCode: }
+	http.HandleFunc("/", ProxyRequestHandler(proxy))
+	http.ListenAndServe(":8888", nil)
 }
