@@ -6,33 +6,35 @@ import (
 	"strings"
 )
 
-type ProfileParametersPOST map[string]string
-type ProfileParametersGET map[string]string
+type ProfileParameters map[string][]string
 
-type Profile struct {
-	ProfileParametersPOST
-	ProfileParametersGET
-}
+func ParseProfile(file string) []ProfileParameters {
 
-func ParseProfile(file string) {
 	rHTTPGET := regexp.MustCompile(`(?m)^http.*(.*)\{(.|\n)*?^}`)
 	rClientHTTP := regexp.MustCompile(`(?m)^.client.*(.*)\{(.|\n)*?}\n.}`)
 	rHeader := regexp.MustCompile(`(?m)header*.*"`)
 	fileContent, _ := os.ReadFile(file)
+	var empty []string
+	empty = append(empty, "")
 
-	for _, match := range rHTTPGET.FindAll(fileContent, -1) {
+	var headers []ProfileParameters
+
+	for _, match := range rHTTPGET.FindAll(fileContent, -1) { // find every http-VERB block
 		clientBlock := rClientHTTP.Find(match)
-		tmp := rHeader.FindAll(clientBlock, -1)
-		param := strings.Replace(string(tmp[0]), `"`, "", -1)
-		//param = strings.Split(string(tmp[0]), " ")
-		println(param)
-		//profileParameters := ProfileParametersGET{"fsd": "1", "bar": "2"}
-		//fmt.Println(string(tmp[0]))
-		//fmt.Println(clientBlock)
+		for _, head := range rHeader.FindAll(clientBlock, -1) { // find every header option in clientblock
+			tmp := strings.Replace(string(head), `"`, "", -1) // trim quotes
+			h := strings.SplitN(tmp, " ", 3)
+			if len(h) > 2 {
+				headers = append(headers, ProfileParameters{h[1]: strings.Split(h[len(h)-1], " ")})
+			} else {
+				headers = append(headers, ProfileParameters{h[1]: empty})
+			}
+		}
 	}
-
+	return headers
 }
 
-func main() {
-	ParseProfile("lambda.profile")
-}
+//func main() {
+//	//var profile Profile
+//
+//}
