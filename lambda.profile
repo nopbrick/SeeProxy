@@ -10,7 +10,7 @@ http-get {
 	client {
 		metadata {
 			base64;
-			header "Tmp";
+			header "Ping";
 		}
 	}
 
@@ -31,6 +31,8 @@ http-post {
 			append "/default.asp";
 			uri-append;
 		}
+
+		header "Pong";
 
 		output {
             base64;

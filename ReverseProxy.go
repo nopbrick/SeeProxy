@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -27,6 +28,24 @@ func NewProxy(teamServer string) (*httputil.ReverseProxy, error) {
 
 func ModifyRequest(request *http.Request) {
 	request.Header.Set("X-Proxy", "Simple Proxy")
+	ValidateRequest(request)
+}
+
+func ValidateRequest(request *http.Request) {
+	profile := ParseProfile("lambda.profile")
+	headers := request.Header
+
+	for _, parameter := range profile {
+		for key, _ := range parameter {
+			_, ok := headers[key]
+			if !ok {
+				ctx, cancel := context.WithCancel(context.Background())
+				request, _ = http.NewRequestWithContext(ctx, "OPTIONS", "http://localhost:1", nil)
+				cancel()
+				// TODO: cancel request when not compliant with profile
+			}
+		}
+	}
 }
 
 func ErrorHandler() func(w http.ResponseWriter, r *http.Request, e error) {
@@ -43,7 +62,7 @@ func ProxyRequestHandler(proxy *httputil.ReverseProxy) func(http.ResponseWriter,
 }
 
 func main() {
-	proxy, err := NewProxy("http://127.0.0.1:1337")
+	proxy, err := NewProxy("http://127.0.0.1:8000")
 	if err != nil {
 		panic(err)
 	}
