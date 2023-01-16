@@ -33,8 +33,3 @@ func ParseProfile(file string) []ProfileParameters {
 	}
 	return headers
 }
-
-//func main() {
-//	//var profile Profile
-//
-//}

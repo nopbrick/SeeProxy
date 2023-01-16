@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 )
 
-func NewProxy(teamServer string) (*httputil.ReverseProxy, error) {
+func NewProxy(teamServer string, profile []ProfileParameters) (*httputil.ReverseProxy, error) {
 	url, err := url.Parse(teamServer)
 	if err != nil {
 		log.Fatal("Error parsing the teamserver URL")
@@ -18,39 +17,38 @@ func NewProxy(teamServer string) (*httputil.ReverseProxy, error) {
 
 	originalDirector := proxy.Director
 	proxy.Director = func(request *http.Request) {
-		originalDirector(request)
-		ModifyRequest(request)
+		if !ValidateRequest(request, profile) {
+			ctx, cancel := context.WithCancel(request.Context())
+			*request = *request.WithContext(ctx)
+			cancel()
+			println("Terminated request from:", request.RemoteAddr, "(reason: request not compliant) ")
+		} else {
+			originalDirector(request)
+		}
+
 	}
 
 	proxy.ErrorHandler = ErrorHandler()
 	return proxy, nil
 }
 
-func ModifyRequest(request *http.Request) {
-	request.Header.Set("X-Proxy", "Simple Proxy")
-	ValidateRequest(request)
-}
-
-func ValidateRequest(request *http.Request) {
-	profile := ParseProfile("lambda.profile")
+func ValidateRequest(request *http.Request, profile []ProfileParameters) bool {
 	headers := request.Header
 
 	for _, parameter := range profile {
 		for key, _ := range parameter {
 			_, ok := headers[key]
 			if !ok {
-				ctx, cancel := context.WithCancel(context.Background())
-				request, _ = http.NewRequestWithContext(ctx, "OPTIONS", "http://localhost:1", nil)
-				cancel()
-				// TODO: cancel request when not compliant with profile
+				return false
 			}
 		}
 	}
+	return true
 }
 
 func ErrorHandler() func(w http.ResponseWriter, r *http.Request, e error) {
 	return func(w http.ResponseWriter, req *http.Request, err error) {
-		fmt.Printf("Got error while modifying response: %v \n", err)
+		//fmt.Printf("Terminated request from: %v \n", req.RemoteAddr)
 		return
 	}
 }
@@ -62,7 +60,9 @@ func ProxyRequestHandler(proxy *httputil.ReverseProxy) func(http.ResponseWriter,
 }
 
 func main() {
-	proxy, err := NewProxy("http://127.0.0.1:8000")
+	profile := ParseProfile("lambda.profile")
+
+	proxy, err := NewProxy("http://127.0.0.1:8000", profile)
 	if err != nil {
 		panic(err)
 	}
