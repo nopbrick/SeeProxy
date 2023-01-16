@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -60,9 +61,12 @@ func ProxyRequestHandler(proxy *httputil.ReverseProxy) func(http.ResponseWriter,
 }
 
 func main() {
-	profile := ParseProfile("lambda.profile")
+	teamserver := flag.String("teamserver", "127.0.0.1:8080", "Teamserver in format <IP>:<PORT>")
+	profileFile := flag.String("profile", "my.profile", "Path to malleable profile")
+	flag.Parse()
+	profile := ParseProfile(*profileFile)
 
-	proxy, err := NewProxy("http://127.0.0.1:8000", profile)
+	proxy, err := NewProxy("http://"+*teamserver, profile)
 	if err != nil {
 		panic(err)
 	}
