@@ -40,8 +40,6 @@ func ValidateRequest(request *http.Request, profile []ProfileHeaders, userAgent 
 	}
 	for _, parameter := range profile {
 		for key, _ := range parameter {
-			println(request.UserAgent())
-
 			_, ok := headers[key]
 			if !ok {
 				return false
