@@ -88,7 +88,7 @@ func ProxyRequestHandler(proxy *httputil.ReverseProxy) func(http.ResponseWriter,
 func main() {
 	teamserver := flag.String("teamserver", "127.0.0.1:8000", "Teamserver in format <IP>:<PORT>")
 	profileFile := flag.String("profile", "lambda.profile", "Path to malleable profile")
-	localPort := flag.String("port", "8080", "Local port to bind to")
+	localPort := flag.String("port", "8888", "Local port to bind to")
 	flag.Parse()
 
 	profile := ParseProfile(*profileFile)
