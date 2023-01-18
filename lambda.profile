@@ -5,7 +5,7 @@ set sleeptime "10000";
 set useragent "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0";
 
 http-get {
-	set uri "/api/get";
+	set uri "/jscroll/board/List.jpg /design/dfbox/List.jpg /design/img/List.jpg";
 	
 	client {
 		metadata {
