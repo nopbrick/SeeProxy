@@ -99,5 +99,5 @@ func main() {
 	}
 
 	http.HandleFunc("/", ProxyRequestHandler(proxy))
-	http.ListenAndServe(":"+*localPort, nil)
+	go http.ListenAndServe(":"+*localPort, nil)
 }
