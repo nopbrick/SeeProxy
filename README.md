@@ -13,3 +13,7 @@ This way every request reaching your teamserver is a legitimate C2 traffic.
 $ make
 $ SeeProxy --teamserver <IP>:<PORT> --profile <path_to_malleable_profile>
 ```
+
+## Demo
+
+[![Demo](https://img.youtube.com/vi/iWuphwQggxk/default.jpg)](https://youtu.be/iWuphwQggxk)
