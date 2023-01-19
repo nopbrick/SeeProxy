@@ -11,10 +11,6 @@ Below you can find a very basic example deployment for a red team engagement. On
 <p>
 <p>
 
-![Demo](/demo/demo.gif)
-
-<p>
-
 ## Usage: 
 
 ```bash
@@ -22,6 +18,8 @@ $ make
 $ SeeProxy --teamserver <IP>:<PORT> --profile <path_to_malleable_profile> --port <local_port>
 ```
 
-## Demo
+## Demo video
+A short video of sending a lot of invalid HTTP requests and a few valid ones. 
+
 
 [![Demo](https://i.imgur.com/MqmpLRs.png)](https://youtu.be/iWuphwQggxk)
