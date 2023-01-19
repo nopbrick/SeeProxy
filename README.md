@@ -24,4 +24,4 @@ $ SeeProxy --teamserver <IP>:<PORT> --profile <path_to_malleable_profile> --port
 
 ## Demo
 
-<iframe width="800" height="450" src="https://www.youtube.com/embed/iWuphwQggxk" title="SeeProxy demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+[![Demo](https://img.youtube.com/vi/iWuphwQggxk/default.jpg)](https://youtu.be/iWuphwQggxk)
