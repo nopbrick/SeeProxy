@@ -24,4 +24,4 @@ $ SeeProxy --teamserver <IP>:<PORT> --profile <path_to_malleable_profile> --port
 
 ## Demo
 
-[![Demo](https://img.youtube.com/vi/iWuphwQggxk/default.jpg)](https://youtu.be/iWuphwQggxk)
+[![Demo](https://i.imgur.com/MqmpLRs.png)](https://youtu.be/iWuphwQggxk)
